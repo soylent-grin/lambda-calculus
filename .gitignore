@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+
+# manim / manim-slides (локальная разработка; для Pages не нужны)
+media/
+videos/
+images/
+texts/
+slides/
+.manim_cache/
+
+# локальная сборка Pages (в CI создаётся заново)
+_site/
+
+# для GitHub Pages в git должны быть: talk.html, talk_assets/, playground/

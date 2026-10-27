@@ -1,0 +1,1647 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <title>Введение в λ-исчисление</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@6.0.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@6.0.1/dist/theme/black.css">
+
+    <!-- Theme used for syntax highlighting of code -->
+    <!-- <link rel="stylesheet" href="lib/css/zenburn.css"> -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@6.0.1/dist/plugin/highlight/zenburn.css">
+    <!-- <link rel="stylesheet" href="index.css"> -->
+  </head>
+
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s00_a46dfb892d8419a6.mp4"
+          data-background-video-muted
+          >
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s00_3a912eac0971295a.mp4"
+          >
+            <aside class="notes" data-markdown>Лекция о том, откуда взялись лямбды в вашем языке. Начнём не с синтаксиса, а с вопроса: что вообще значит «вычислить».
+
+**Контекст:** аудитория пишет `x => x * 2` каждый день, но редко знает, что эта запись — прямой потомок работы 1936 года. Обещание лекции: после неё стрелочная функция будет выглядеть как кусок истории математики.
+
+**Можно начать с вопроса залу:** кто писал лямбды на этой неделе? Обычно поднимают руки почти все.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s00_f05f6a20b9d2287e.mp4"
+          >
+            <aside class="notes" data-markdown>Весь λ-язык держится на одном жесте: аргумент встаёт на место параметра. Мы к нему вернёмся, когда дойдём до правил.
+
+Прочитать вслух: «лямбда икс точка икс, применённая к игрек». Это то же самое, что `(x => x)(y)`.
+
+**Переход:** но сначала — зачем это вообще понадобилось людям, у которых не было компьютеров.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s01_284a80b09136223b.mp4"
+          >
+            <aside class="notes" data-markdown>Сначала история: без неё λ выглядит странной игрушкой. С ней — ответом на конкретный вопрос.
+
+**Контекст:** Лекция ~48 минут: история ~12, язык ~10, данные ~4, рекурсия ~10, типы ~4, практика ~6, итог ~2. На каждом слайде сверху — суть одной фразой; если время поджимает, достаточно её и картинки. Формулы читать вслух не нужно — смысл всегда проговаривается словами.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s01_64edca9c306d3331.mp4"
+          >
+            <aside class="notes" data-markdown>Потом идеи, которые выросли из ответа. Формул будет немного, код — на JavaScript и Haskell.
+
+**Если спросят**
+
+- *Нужна ли математическая подготовка?* — Нет. Достаточно уметь читать стрелочные функции в JavaScript.
+- *Будет ли практика?* — Песочница в репозитории и на GitHub Pages — пошаговая β-редукция в браузере.
+
+**Переход:** Начнём за четверть века до Гильберта — с мечты построить всю математику из множеств.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s02_1dbc5ae578f22cbb.mp4"
+          >
+            <aside class="notes" data-markdown>Кантор (1874) — бесконечности разного размера, Фреге (1879, 1893) — формальная логика и арифметика из логики. Множество — «всё, что обладает свойством». Звучит безобидно.
+
+**Контекст:** Предыстория одним слайдом, 2 минуты. Наивная теория множеств: любое свойство задаёт множество. Рассел (письмо Фреге 16 июня 1902) показал противоречие. Главное — самоприменение: оно пройдёт через всю лекцию. Фреге добавил ко второму тому послесловие о крушении фундамента.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s02_ddc3755fca9e9904.mp4"
+          >
+            <aside class="notes" data-markdown>Определение выглядит законным: свойство «не содержать себя» понятно.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s02_7aad5e2e98526538.mp4"
+          >
+            <aside class="notes" data-markdown>Да — значит нет, нет — значит да. Бытовая версия: брадобрей бреет всех, кто не бреет себя сам.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s02_74592a5370fbc6a9.mp4"
+          >
+            <aside class="notes" data-markdown>Это не «трудный вопрос», а противоречие внутри самих правил. А противоречивая система доказывает что угодно.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s02_7c1d3e935f893715.mp4"
+          >
+            <aside class="notes" data-markdown>Для программистов: R(R) = !R(R) — бесконечная рекурсия. 16 июня 1902 года Рассел написал Фреге, второй том его «Основных законов» уже был в печати. Ответы: типы Рассела, аксиомы Цермело (1908) и формализм Гильберта.
+
+**Если спросят**
+
+- *Почему это не просто игра слов?* — Потому что система Фреге формальная: противоречие в ней выводится строго, а из противоречия выводится всё что угодно.
+- *Как решили проблему?* — Три ответа: типы Рассела (нельзя спрашивать x ∈ x — разные уровни), аксиомы Цермело (множества строятся только разрешёнными способами), формализм Гильберта (доказать непротиворечивость самой математики).
+- *Что будет с R(R) в JS?* — Бесконечная рекурсия и RangeError: Maximum call stack size exceeded. В λ это Ω.
+- *Что такое «наивная» теория множеств?* — Так называют теорию без явных аксиом, где «множество всех x со свойством P» существует для любого P. Сам Кантор так её не называл.
+- *Что доказал Кантор диагональю?* — Что действительных чисел больше, чем натуральных (1891), и что у любого множества подмножеств больше, чем элементов. Тот же приём потом используют Гёдель и Тьюринг.
+
+**Переход:** Самым амбициозным был третий ответ — программа Гильберта.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s03_e647995cbcb8c4ac.mp4"
+          >
+            <aside class="notes" data-markdown>Речь в Кёнигсберге 8 сентября 1930 года, транслировалась по радио. Ирония: днём раньше в том же городе 24-летний Гёдель объявил о неполноте. Фраза высечена на надгробии Гильберта в Гёттингене.
+
+**Контекст:** Задача слайда — мотивация: λ-исчисление придумали не ради программирования, компьютеров ещё не было. Его придумали, чтобы ответить на вопрос о пределах математики. Формализм Гильберта: математика как игра с символами, где каждое доказательство можно проверить механически.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s03_37e25458342de601.mp4"
+          >
+            <aside class="notes" data-markdown>Программа Гильберта: математика как игра с символами по правилам. Тогда истинность можно проверять механически — мечта Лейбница «Calculemus!».</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s03_15897c121ba0fc20.mp4"
+          >
+            <aside class="notes" data-markdown>Гёдель ударил по полноте, но не по разрешимости. Нужен был другой инструмент.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s03_7c7049a64e826028.mp4"
+          >
+            <aside class="notes" data-markdown>До 1930-х «алгоритм» — интуитивное понятие, как «красота». Нужна математическая модель всех возможных программ сразу.
+
+**Если спросят**
+
+- *Чем Гёдель отличается от Entscheidungsproblem?* — Гёдель: есть истинные, но недоказуемые утверждения. Entscheidungsproblem: есть ли механическая процедура, которая решает, выводима ли формула. Это разные вопросы; второй закрыли Чёрч и Тьюринг.
+- *Это только логика первого порядка?* — Да, Гильберт и Аккерман ставили задачу для логики первого порядка. Для неё ответ отрицательный.
+- *Почему нельзя просто перебрать все алгоритмы?* — Нужен способ их перечислить. А для этого нужно знать, как алгоритм записывается, то есть определение.
+- *А машина Поста?* — Эмиль Пост в 1936 году независимо описал очень похожую модель. Её часто упоминают вместе с машиной Тьюринга.
+
+**Переход:** В 1936 году на этот вопрос ответили сразу несколько человек. Начнём с Чёрча.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s04_dbed3a14dbf46de1.mp4"
+          >
+            <aside class="notes" data-markdown>Почему λ? В письме 1964 года Чёрч объяснил: в Principia писали x̂, он сдвинул шляпку влево, а наборщик заменил её похожей λ. Позже он отшучивался, что выбрал букву считалкой.
+
+**Контекст:** Алонзо Чёрч (1903–1995), профессор Принстона. Его ученики: Клини, Россер, Тьюринг, позже Дана Скотт и Майкл Рабин. Важная мысль: λ — побочный продукт неудачной попытки построить логику. Неудача оказалась идеальным языком вычислений.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s04_fbb1ed1dfbbebe49.mp4"
+          >
+            <aside class="notes" data-markdown>Философский выбор: функция — более фундаментальное понятие, чем множество.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s04_8bcef8b85f9fc6b2.mp4"
+          >
+            <aside class="notes" data-markdown>Клини и Россер в 1935 году нашли противоречие. Ирония: провалившаяся логика оказалась идеальным языком вычислений.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s04_df5fb43dfeed6ca5.mp4"
+          >
+            <aside class="notes" data-markdown>Статьи апреля 1936 года. Тьюринг узнал о них, уже закончив свою работу.
+
+**Если спросят**
+
+- *Что за противоречие нашли?* — Клини и Россер в 1935 году показали, что в исходной системе Чёрча выводится противоречие — вариант парадокса Ришара. Чистая часть про функции без логических связок от этого не страдает.
+- *Чёрч знал про компьютеры?* — Нет, это 1930-е. Слово «computer» тогда означало человека, который считает по инструкции.
+
+**Переход:** Почти одновременно в Кембридже на тот же вопрос ответил 23-летний Тьюринг.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s05_ef7e6fe1f2f4da13.mp4"
+          >
+            <aside class="notes" data-markdown>Машина — не железо, а мысленный эксперимент.
+
+**Контекст:** Статья «On Computable Numbers, with an Application to the Entscheidungsproblem» поступила в журнал 28 мая 1936 года. Главное в ней не машина, а анализ: почему любая процедура «по инструкции» сводится к таким шагам. Поэтому тезис чаще связывают с Тьюрингом.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s05_944a2cc11dcebaa9.mp4"
+          >
+            <aside class="notes" data-markdown>Один шаг: в состоянии q1 головка видит 0, пишет 1 и сдвигается. Больше машина ничего не умеет.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s05_6593d7a6432f7a30.mp4"
+          >
+            <aside class="notes" data-markdown>Тьюринг смотрел не на формулы, а на человека за столом: внимание ограничено, память — бумага.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s05_f725ff0356daa6e1.mp4"
+          >
+            <aside class="notes" data-markdown>Этот анализ убедил Гёделя — определение Чёрча его не убедило.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s05_4705694e7c609809.mp4"
+          >
+            <aside class="notes" data-markdown>Любой интерпретатор — универсальная машина. Фон Нейман знал работу Тьюринга; насколько прямым было влияние, историки спорят.
+
+**Если спросят**
+
+- *Почему лента бесконечна?* — Чтобы не ограничивать память заранее. Любое конкретное вычисление использует конечную часть ленты.
+- *Реальный компьютер — машина Тьюринга?* — Конечный автомат с огромной памятью. Модель Тьюринга — идеализация без ограничения памяти.
+- *Это тот Тьюринг из «Энигмы»?* — Да. Взлом шифров и тест Тьюринга были позже, в 1940-х и 1950-м.
+
+**Переход:** Две модели выглядят совсем по-разному. Сравним их строчка за строчкой.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s06_ce22dff4853b81a1.mp4"
+          >
+            <aside class="notes" data-markdown>Тьюринг приехал в Принстон осенью 1936 и защитил диссертацию у Чёрча. Два подхода встретились в одном кабинете.
+
+**Контекст:** Это ключевой слайд о связи Чёрча и Тьюринга. Тьюринг дописал к статье приложение (август 1936) с доказательством эквивалентности, а в 1937 году опубликовал отдельную статью «Computability and λ-definability». В 1936–1938 годах он учился у Чёрча в Принстоне. Сквозная мысль: λ — декларативный взгляд, машина — императивный. Эта граница дожила до наших дней.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s06_fb5128dfab998c1c.mp4"
+          >
+            <aside class="notes" data-markdown>Декларативный взгляд против императивного.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s06_0e22ff814245328d.mp4"
+          >
+            <aside class="notes" data-markdown>Подстановка против изменения ячейки. Та же граница, что между ФП и императивным кодом.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s06_441000b1107c2b6e.mp4"
+          >
+            <aside class="notes" data-markdown>В λ нет состояния: всё, что знает программа, записано в самом выражении.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s06_d6b2e3d698c5828e.mp4"
+          >
+            <aside class="notes" data-markdown>Обе линии живы. Каждый компилятор функционального языка переводит первую во вторую.
+
+**Если спросят**
+
+- *Что значит «эквивалентны»?* — Любую λ-программу можно перевести в машину Тьюринга с тем же результатом, и наоборот. Переводы конструктивные, то есть сами являются алгоритмами.
+- *А скорость?* — Эквивалентность — про то, ЧТО вычислимо, а не за сколько шагов. Эффективность моделей различается.
+
+**Переход:** Совпадение трёх моделей подсказывает смелую гипотезу.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s07_d5fad13e9e5a4807.mp4"
+          >
+            <aside class="notes" data-markdown>Математический факт: модели переводятся друг в друга. Совпадение независимых попыток — главный аргумент, что поймали что-то настоящее.
+
+**Контекст:** Самое частое заблуждение: «тезис Чёрча–Тьюринга доказан». Доказана эквивалентность моделей. Тезис связывает формальное понятие с интуитивным, поэтому доказать его нельзя. Название «тезис Чёрча» ввёл Клини (1943, 1952). Различать тезис и его физическую версию.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s07_fa2bce985359aa2e.mp4"
+          >
+            <aside class="notes" data-markdown>«Интуитивный алгоритм» не формальный объект, поэтому тезис нельзя доказать, только опровергнуть. За 90 лет контрпримера нет.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s07_422df1bf11844d67.mp4"
+          >
+            <aside class="notes" data-markdown>Квантовые компьютеры быстрее на некоторых задачах, но не вычисляют невычислимого.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s08_75f1fbabf25be38d.mp4"
+          >
+            <aside class="notes" data-markdown>Построим программу, которая противоречит любому halts.
+
+**Контекст:** Диагональный аргумент — тот же приём, что у Кантора, Рассела и Гёделя: объект, который спрашивает о себе и поступает наоборот. Без формул — только JS-псевдокод. Практический вывод для разработчиков — теорема Райса.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s08_d5c60bd4133f7fa3.mp4"
+          >
+            <aside class="notes" data-markdown>Если halts говорит «остановится» — программа крутится. Если «нет» — возвращает 0. Противоречие, значит halts нет. Тьюринг, 1936; у Чёрча чуть раньше — в форме «равны ли два λ-выражения».</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s08_5d8351d41f78b7c2.mp4"
+          >
+            <aside class="notes" data-markdown>Диагональ Кантора, парадокс Рассела, теорема Гёделя, проблема остановки — одна идея.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s08_d09a505abff3bae1.mp4"
+          >
+            <aside class="notes" data-markdown>«Есть ли утечка», «вернёт ли функция null» — в общем случае неразрешимо. Анализаторы либо пропускают ошибки, либо ругаются зря.
+
+**Если спросят**
+
+- *Но ведь анализаторы находят зацикливания?* — Находят в частных случаях. Неразрешимость значит, что нет инструмента, который прав на ВСЕХ программах.
+- *Как же TypeScript и Rust что-то гарантируют?* — Они проверяют синтаксическое свойство (типы) и консервативно отвергают часть корректных программ. Это и есть «приближение».
+- *Неразрешимо и для конечной памяти?* — Для конечной памяти в принципе разрешимо (состояний конечно), но число состояний астрономическое — практически это не помогает.
+
+**Переход:** История закончилась отрицательным ответом. Но язык Чёрча остался — посмотрим, как он устроен.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s09_67716843659aa13f.mp4"
+          >
+            <aside class="notes" data-markdown>Два способа сказать «квадрат». Слева таблица — бесконечная. Справа короткое правило.
+
+**Контекст:** Мост от истории к языку. Мысль: функция в математике — график (множество пар), функция в программировании — правило (код). λ-исчисление — теория функций-правил. Это и делает его теорией программ.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s09_cbc3a9415bde4992.mp4"
+          >
+            <aside class="notes" data-markdown>λx. x × x читается «функция от x, которая возвращает x × x». Точка отделяет параметр от тела, это не умножение. В JavaScript — x => x * x.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s09_57cd2ec15fc7ecf8.mp4"
+          >
+            <aside class="notes" data-markdown>Математики называют это экстенсиональным и интенсиональным взглядом. Второй — и есть вычисление.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s09_8862ef27dd0f8378.mp4"
+          >
+            <aside class="notes" data-markdown>В теории множеств функцию нельзя применить к себе. В λ — можно. Отсюда и сила, и парадоксы.
+
+**Если спросят**
+
+- *Чем это отличается от функции в Python?* — Ничем по сути, кроме отсутствия эффектов: λ-функция только вычисляет результат.
+- *Почему в теории множеств нельзя f(f)?* — Функция — множество пар, а аксиома регулярности запрещает множеству содержать себя «внутри». Модель, где самоприменение законно, построил Дана Скотт в 1969 году.
+
+**Переход:** Посмотрим, насколько мал язык функций-правил.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s10_f7da25b78586b646.mp4"
+          >
+            <aside class="notes" data-markdown>Переменная — просто имя. Позже на её место что-то подставят.
+
+**Контекст:** Подчеркнуть минимализм: три синтаксические формы против десятков в любом языке. Каждое доказательство о λ — разбор трёх случаев. Если зал заскучал — спросить: «как здесь записать число 2?» (ответ будет через раздел).</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s10_6597c63a64674c5a.mp4"
+          >
+            <aside class="notes" data-markdown>Абстракция — анонимная функция. Параметр x, тело M.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s10_abb5f103202cbfe3.mp4"
+          >
+            <aside class="notes" data-markdown>Применение — вызов. Пробел и есть вызов, как в Haskell; f a b значит (f a) b.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s10_7d86a13f8510063a.mp4"
+          >
+            <aside class="notes" data-markdown>Каррирование названо в честь Хаскелла Карри, хотя раньше его описали Шейнфинкель (1924) и Фреге. Отсюда частичное применение.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s10_ca08866edca2df77.mp4"
+          >
+            <aside class="notes" data-markdown>Как вентиль NAND в электронике: минимальный базис, из которого собирается всё. Через пару разделов отсюда вырастут логика, числа и рекурсия.
+
+**Если спросят**
+
+- *А как записать x + 1?* — В чистом λ «+» и «1» — тоже функции. Мы их построим в разделе про данные.
+- *Зачем каррирование?* — Чтобы не вводить функции многих аргументов как отдельное понятие. Бонус — частичное применение бесплатно.
+
+**Переход:** Прежде чем вычислять, надо разобраться, какое имя к чему относится.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s11_62e7538fd377f685.mp4"
+          >
+            <aside class="notes" data-markdown>Три роли, три цвета. Эти цвета сохранятся до конца лекции.
+
+**Контекст:** Цветовая схема сохранится до конца: золото — параметр, голубой — связанное вхождение, коралл — свободное имя. Связь с практикой: замыкания и лексическая область видимости.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s11_e4a87d6c980f8455.mp4"
+          >
+            <aside class="notes" data-markdown>Рамка — область действия λ. Коралловый y в неё не входит.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s11_82eb1e0d1e254140.mp4"
+          >
+            <aside class="notes" data-markdown>В JS function f(x) { return x + y } — y свободна, её значение даст окружение. Algol 60 перенёс эту лексическую область видимости в языки.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s11_34cc9018de56bff6.mp4"
+          >
+            <aside class="notes" data-markdown>Переименование параметра не меняет смысл. Как rename в IDE.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s11_754523c6e0d2d555.mp4"
+          >
+            <aside class="notes" data-markdown>Если внутри уже есть свой y, а снаружи подставляют чужой y — сначала переименуем внутренний. Ранний Lisp с динамической областью видимости страдал именно от этого бага (funarg problem).
+
+**Если спросят**
+
+- *Что такое замыкание в этих терминах?* — Функция плюс значения её свободных переменных. Свободное имя «закрыли» значением из окружения.
+- *Индексы де Брёйна используют на практике?* — Да: в компиляторах (например, в реализациях Lean, Coq, Agda), в интерпретаторах — сравнение термов становится сравнением деревьев без учёта имён.
+- *Где это встречается сегодня?* — Макросы C (#define без скобок и с совпадающими именами), негигиеничные макросы Lisp, inline-подстановка в компиляторах.
+- *Почему не переименовывать всегда?* — Можно — так и делают: свежие имена при каждой подстановке или индексы де Брёйна, где проблемы нет вовсе.
+
+**Переход:** Теперь единственное правило, которое реально что-то вычисляет.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s12_4ffe5ac51a48bddd.mp4"
+          >
+            <aside class="notes" data-markdown>Вся динамика языка в одной строке. M[x := N] — «M, где x заменили на N».
+
+**Контекст:** Главный слайд языка. β-редукция — это вызов функции без стека и регистров, просто переписывание выражения. Дать анимации доиграть, не говорить поверх неё.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s12_3bdb8d106e1253fc.mp4"
+          >
+            <aside class="notes" data-markdown>Самый короткий вызов. В JS это (x => x)(y).</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s12_045ac1fb25491b37.mp4"
+          >
+            <aside class="notes" data-markdown>Дать анимации доиграть: y едет на место x, обёртка исчезает. Выражение (λx. M) N называют редексом — reducible expression.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s12_1170a16e6f2f2bf3.mp4"
+          >
+            <aside class="notes" data-markdown>Как в школьной алгебре: подставили — упростили.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s12_157b1ce6045451a6.mp4"
+          >
+            <aside class="notes" data-markdown>Функция двух аргументов получила один: подставили a вместо x, λy осталась ждать.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s12_81e19726aa2acd87.mp4"
+          >
+            <aside class="notes" data-markdown>Итог — λy. a: функция, которая игнорирует аргумент и возвращает a. Скоро она станет TRUE.
+
+**Если спросят**
+
+- *Откуда название β?* — Из нотации Карри и Фейса: правила преобразования обозначались α, β, η. Подробнее — на следующем слайде.
+- *Это и есть вызов функции в JS?* — Семантически да для чистых функций. Реализация другая: окружения и стек вместо переписывания текста.
+
+**Переход:** β — не единственное правило переписывания. Кратко — α и η.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s13_2dd5ac0d8867da43.mp4"
+          >
+            <aside class="notes" data-markdown>Карри и Фейс назвали три вида преобразований буквами α, β, η. На практике почти всё — β; α нужна, чтобы подстановка не ломала смысл.
+
+**Контекст:** 30 секунд: α — переименование (уже видели), β — вычисление, η — убрать лишнюю обёртку. η важна для Z и строгих языков.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s13_29583a72d0caad74.mp4"
+          >
+            <aside class="notes" data-markdown>β — единственное «настоящее» вычисление. Остальное — про эквивалентные записи одной функции.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s13_a68b29d993451c13.mp4"
+          >
+            <aside class="notes" data-markdown>η говорит: обёртка «просто передать арг дальше» ничего не меняет. В строгих языках из неё делают отложенный вызов — вспомните Z на слайде про Y.
+
+**Если спросят**
+
+- *Нужно ли η в повседневном коде?* — Редко явно, но компиляторы и оптимизаторы используют ту же идею: f и x => f(x) эквивалентны.
+- *α-conversion в JS?* — Параметры функции можно назвать как угодно — смысл тот же.
+
+**Переход:** Подстановку можно повторять. Чем это кончается?</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s14_478d97895b298296.mp4"
+          >
+            <aside class="notes" data-markdown>Слева ответ: подставлять нечего, вычисление закончено.
+
+**Контекст:** Ω — самый короткий бесконечный цикл. Важно: это не баг языка, а неизбежное следствие его силы. Это x x из парадокса Рассела, перенесённое в код (вспомнить R(R) с первого слайда истории). Связь с историей: неразрешимость Чёрча — как раз о том, что нельзя предсказать, есть ли нормальная форма.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s14_2871f7cae30158bf.mp4"
+          >
+            <aside class="notes" data-markdown>Справа Ω — «омега». Подставляем аргумент в x x и получаем исходный терм.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s14_7460364fcff1ea57.mp4"
+          >
+            <aside class="notes" data-markdown>Один оборот. Это не «долго считается» — это не кончается никогда.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s14_2f3410462fb9cb2e.mp4"
+          >
+            <aside class="notes" data-markdown>Тот же x x, что R(R) у Рассела. Запомните его: в рекурсии он станет двигателем.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s14_75ae4072f383703e.mp4"
+          >
+            <aside class="notes" data-markdown>Цена универсальности: язык, где можно всё, неизбежно содержит вечные циклы.
+
+**Если спросят**
+
+- *Можно ли запретить Ω синтаксически?* — Только ценой полноты по Тьюрингу. Это сделают типы — в конце лекции.
+- *Бывает ли рост вместо цикла?* — Да: (λx. x x x)(λx. x x x) растёт с каждым шагом. Тоже нет нормальной формы.
+
+**Переход:** Если ответ есть — может ли он зависеть от порядка шагов?</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s15_0e65027784b238a8.mp4"
+          >
+            <aside class="notes" data-markdown>Из M можно сделать шаг в разные стороны.
+
+**Контекст:** Теорема Чёрча–Россера (1936) — главная «хорошая новость» о λ. Её смысл для разработчика: у чистого кода результат не зависит от порядка вычисления. Отсюда безопасность параллелизма, ленивости и оптимизаций компилятора.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s15_7fa6b8591ec2a418.mp4"
+          >
+            <aside class="notes" data-markdown>Ромб всегда замыкается: найдётся общий P. Это называют конфлюэнтностью — «слиянием».</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s15_9956d977646bdb45.mp4"
+          >
+            <aside class="notes" data-markdown>Компилятор Haskell переставляет вычисления, MapReduce раскидывает их по машинам. Обоснование — здесь. Программа с гонками может дать разные ответы, λ — нет.
+
+**Если спросят**
+
+- *Значит, любой порядок найдёт ответ?* — Нет! Теорема говорит, что ответы не противоречат. Но один порядок может зациклиться там, где другой найдёт ответ — следующий слайд.
+- *Это верно для JS?* — Только для чистого подмножества. Побочные эффекты (присваивания, ввод-вывод) делают порядок важным.
+
+**Переход:** Раз порядок может решать, найдём ли мы ответ, — какой порядок выбрать?</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s16_84903f4f3fe99d5d.mp4"
+          >
+            <aside class="notes" data-markdown>Функция выбрасывает свой аргумент. А аргумент — бесконечный Ω.
+
+**Контекст:** Связь теории и практики: стратегия вычисления — фундаментальное решение при проектировании языка. Haskell выбрал ленивость (вызов по необходимости = по имени + кэширование), почти все остальные — строгость.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s16_f5bc7dc0a846dcb5.mp4"
+          >
+            <aside class="notes" data-markdown>По имени аргумент не трогают, пока он не нужен. Он не нужен — ответ λy. y.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s16_f7cee3244e546bde.mp4"
+          >
+            <aside class="notes" data-markdown>По значению сначала считают Ω — и застревают навсегда.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s16_773dc189f5128735.mp4"
+          >
+            <aside class="notes" data-markdown>Теорема стандартизации. Строгий порядок проще предсказать по памяти и времени — поэтому его выбирает почти каждый язык.
+
+**Если спросят**
+
+- *Почему не все языки ленивые?* — Ленивость усложняет предсказание памяти и времени, плохо сочетается с эффектами. Строгий порядок проще отлаживать.
+- *Чем «по необходимости» отличается от «по имени»?* — По имени аргумент вычисляется при каждом использовании, по необходимости — один раз, затем результат запоминается.
+- *Есть ли ленивость в JS?* — Островки: &&, ||, ?:, генераторы, функции-обёртки () => expr.
+
+**Переход:** Язык есть. Но в нём нет ни чисел, ни булевых значений. Где их взять?</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s17_c9bf5d9d4ab71c78.mp4"
+          >
+            <aside class="notes" data-markdown>Булево не хранит бит. Оно умеет выбрать ветку.
+
+**Контекст:** Философский слайд раздела. Кодирование Чёрча — способ показать, что λ не беднее арифметики. Ключевая фраза: значение определяется тем, что с ним можно сделать. Связь с ООП и утиной типизацией.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s17_cfddf7f5e66f5d29.mp4"
+          >
+            <aside class="notes" data-markdown>Число не цифра. Оно умеет повторить.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s17_1822f8f69bdc796e.mp4"
+          >
+            <aside class="notes" data-markdown>Пара не хранит поля. Она отдаёт обе части селектору: FST берёт первую, SND вторую.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s17_ac7c5b2a4dc6cb00.mp4"
+          >
+            <aside class="notes" data-markdown>Список — это функция, которая сама себя сворачивает. reduce в JS отсюда.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s17_6ae5fa1a7bba4a85.mp4"
+          >
+            <aside class="notes" data-markdown>Чёрч придумал это, чтобы показать: арифметика выражается в его языке.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s17_ec1e5b2f6cd94fee.mp4"
+          >
+            <aside class="notes" data-markdown>Философский сдвиг: идентичность через поведение, а не через устройство.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s17_3187ac35df2b8b23.mp4"
+          >
+            <aside class="notes" data-markdown>Тот, кто писал fold или Visitor, уже пользовался кодированием Чёрча. Дальше два примера крупно: логика и числа.
+
+**Если спросят**
+
+- *Так реально программируют?* — Нет, это неэффективно. Но идея жива: fold, visitor, tagless final, CPS — всё это родственники кодирования Чёрча.
+- *А строки, объекты?* — Строка — список символов, символ — число, объект — набор пар. Всё сводится к тем же четырём кирпичам.
+
+**Переход:** Начнём с самого простого — истины и лжи.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s18_8493e9ed0a0cd386.mp4"
+          >
+            <aside class="notes" data-markdown>TRUE — функция двух аргументов, которая возвращает первый. Стрелка и есть определение.
+
+**Контекст:** Показать, что if — это не конструкция языка, а применение функции. TRUE совпадает с λx. λy. x — тем, что получилось при частичном применении на слайде про β.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s18_85bcef1851fc68df.mp4"
+          >
+            <aside class="notes" data-markdown>FALSE возвращает второй. Обратите внимание: это та же λy. a, что получилась на слайде про β.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s18_0f1a93e8ed5efc12.mp4"
+          >
+            <aside class="notes" data-markdown>IF ничего не выбирает сам: он отдаёт обе ветки тому, кто умеет выбирать — самому условию.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s18_de24ac664e2788ba.mp4"
+          >
+            <aside class="notes" data-markdown>Как тернарный оператор, только без оператора.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s18_6607093f3c844dfb.mp4"
+          >
+            <aside class="notes" data-markdown>Так же определяются NOT (поменять варианты местами) и AND = λp. λq. p q p.
+
+**Если спросят**
+
+- *Почему IF c a b = c a b?* — Потому что c само выбирает: TRUE вернёт a, FALSE — b. IF лишь читабельная обёртка.
+- *Что будет, если подставить не булево?* — Получится какой-то терм, но бессмысленный. В бестиповом λ нет защиты — её дадут типы.
+
+**Переход:** Логика — это выбор. Числа — это повторение.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s19_c5d174417a404a2d.mp4"
+          >
+            <aside class="notes" data-markdown>Ноль — x, к которому не притронулись. Каждое следующее число — ещё один вызов f.
+
+**Контекст:** Число Чёрча n — функция «применить f n раз». Нагляднее всего стопкой f. Не читать формулы SUCC и ADD подробно, проговорить смысл. Проверка через JS убеждает скептиков.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s19_92f75dd4811e4958.mp4"
+          >
+            <aside class="notes" data-markdown>Прибавить один — повесить ещё один f сверху. Число не вскрывают, как цифру.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s19_98ab78f3b5a2b34d.mp4"
+          >
+            <aside class="notes" data-markdown>Сложить — повторить этот жест m раз, начиная с n.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s19_ee894d57a0a770b8.mp4"
+          >
+            <aside class="notes" data-markdown>Вычитание тоже кодируется, но терм для «−1» длинный и хитрый. Сам Чёрч сомневался, что он существует; Клини нашёл его в 1932 году — по его собственному рассказу, в кресле у зубного врача.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s19_284f3e89af45a9c3.mp4"
+          >
+            <aside class="notes" data-markdown>Если передать вместо f инкремент, а вместо x ноль — получится обычное число. Так кодирование проверяют.
+
+**Если спросят**
+
+- *Как сравнить числа?* — Через ISZERO = λn. n (λx. FALSE) TRUE и вычитание. Термы длиннее, но строятся так же.
+- *А отрицательные и дробные?* — Пары натуральных: целое — разность пары, дробь — отношение пары. Так же строят и в математике.
+
+**Переход:** Числа есть, ветвления есть. Не хватает только циклов — то есть рекурсии.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s20_06b69e02801f22b9.mp4"
+          >
+            <aside class="notes" data-markdown>Факториал должен позвать себя. Но кого звать?
+
+**Контекст:** Поставить проблему остро: рекурсия кажется невозможной, потому что в λ нет имён. Это выглядит как фатальный недостаток — и тем эффектнее решение.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s20_93bf528648269d72.mp4"
+          >
+            <aside class="notes" data-markdown>Зачеркнуть именно вызов. Связать fact нечем: имени нет, есть только лямбда.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s20_5510bcb478264923.mp4"
+          >
+            <aside class="notes" data-markdown>В каждом языке имя функции видно внутри её тела. Это особое правило. В λ его нет — и добавлять не хотим.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s20_21c4e895c64e6d1f.mp4"
+          >
+            <aside class="notes" data-markdown>Вспомните Ω: самоприменение уже дало бесконечное повторение. Нужно его приручить.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s20_662ebaeaa22b93fa.mp4"
+          >
+            <aside class="notes" data-markdown>Решение придёт из математики, а не из программирования. Начнём с графика косинуса.
+
+**Если спросят**
+
+- *Почему не добавить let rec?* — Можно, так и делают в реальных языках. Но интересно, что добавлять не нужно: рекурсия уже выводится из трёх форм.
+
+**Переход:** Подсказка придёт из математики: из уравнения x = cos x.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s21_f7edf2cb8c194961.mp4"
+          >
+            <aside class="notes" data-markdown>Начнём со школьной математики. Неподвижная точка — где график функции пересекает диагональ y = x.
+
+**Контекст:** Начинаем без программирования. Неподвижная точка функции g — такое x, что g(x) = x; на графике — пересечение с диагональю y = x. Для cos это ≈ 0.739 (число Дотти). Эксперимент: на калькуляторе в радианах жать cos много раз. «Паутина» показывает, почему итерация сходится: каждый шаг — к графику и обратно к диагонали.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s21_1585ee4849550ad0.mp4"
+          >
+            <aside class="notes" data-markdown>Примеры, которые можно проверить в уме: у x² две неподвижные точки, 0 и 1, у x + 1 — ни одной.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s21_bce50ca9e3a6998a.mp4"
+          >
+            <aside class="notes" data-markdown>«Лесенка»: от x идём вверх до графика — это cos x, потом вбок до диагонали — это делает cos x новым x. Ступеньки сходятся к пересечению.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s21_93013277db9e5858.mp4"
+          >
+            <aside class="notes" data-markdown>Самое важное: x = cos x — это определение x через самого себя. Решить такое уравнение — значит найти неподвижную точку. Дальше мы сделаем то же самое, только x будет функцией.
+
+**Если спросят**
+
+- *Всегда ли итерация сходится?* — Нет. Для cos сходится, потому что он сжимает расстояния около точки (теорема Банаха, 1922). Для g(x) = x + 1 неподвижной точки нет вовсе.
+- *Где это в реальной жизни?* — PageRank — неподвижная точка матрицы ссылок; поиск равновесия в экономике; анализ потоков данных в компиляторах крутится до неподвижной точки; Kubernetes-контроллеры повторяют шаг, пока состояние не перестанет меняться.
+- *Почему так важно «x = g(x)»?* — Это уравнение, где неизвестное стоит с обеих сторон — ровно как рекурсивное определение, где функция определена через себя.
+
+**Переход:** Перенесём ту же идею с чисел на функции.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s22_d35f0584c6d87817.mp4"
+          >
+            <aside class="notes" data-markdown>F выглядит как факториал, но вместо вызова себя вызывает параметр f. Это «улучшатель»: дай ему приближение — получишь приближение получше.
+
+**Контекст:** Главный слайд раздела. F — «улучшатель»: берёт приблизительную версию факториала и возвращает чуть лучшую. Начинаем с функции, которая ничего не знает (⊥), каждое применение F добавляет одно известное значение. Предел — настоящий факториал, и он неподвижная точка: F(fact) = fact. Рекурсивное определение = уравнение на функцию.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s22_991b8d6f6ec7e362.mp4"
+          >
+            <aside class="notes" data-markdown>Стартуем с функции, которая не знает ни одного ответа: на любой вызов зависает. Знак ⊥ — «дно».</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s22_1ccc26e2698aec70.mp4"
+          >
+            <aside class="notes" data-markdown>f₁ знает ответ для 0: там F не обращается к f. Для остальных n зовёт f₀ и зависает.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s22_9ba3082d5ac6d6ad.mp4"
+          >
+            <aside class="notes" data-markdown>f₂ = F(f₁): для n = 1 зовёт f₁(0), а его ответ уже известен. Золотым — новое выученное значение.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s22_bef294e9b19d5e7f.mp4"
+          >
+            <aside class="notes" data-markdown>Каждый следующий шаг — ещё один ответ. Это та же «лесенка», что у косинуса, только по функциям.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s22_20a5529c5811ab30.mp4"
+          >
+            <aside class="notes" data-markdown>В пределе — функция, которая знает все ответы, и F её уже не улучшает. Теорема Клини: такая точка всегда есть. Осталось получить её без имён.
+
+**Если спросят**
+
+- *Что такое ⊥?* — «Дно» — функция, которая не даёт ответа ни на каком входе (зацикливается или бросает ошибку). Самое бедное приближение.
+- *Это строго?* — Да: теорема Клини о неподвижной точке (денотационная семантика, Скотт и Стрейчи, 1970-е) — наименьшая неподвижная точка непрерывного F есть предел F(⊥), F(F(⊥)), …
+- *Зачем так сложно, если можно написать fact?* — Если есть имена — незачем. Но в λ их нет, а F не ссылается на себя: в F нет слова fact. Осталось найти неподвижную точку F без имён.
+
+**Переход:** Неподвижную точку надо найти, ни разу не назвав её. Первый шаг — передать функцию самой себе.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s23_7bb3bb9e8668f052.mp4"
+          >
+            <aside class="notes" data-markdown>Отличие от `function fact`: внутри нельзя написать `fact(n−1)` — в λ нет такого имени. Зато можно принять «себя» параметром.
+
+**Контекст:** Самоприменение в действии. Ключ для зала: half — имя *снаружи* (const), но в *теле* только self — это не fact вызывает fact. half(half) = один раз «вот ты же, возьми себя аргументом». В чистом λ: (λx. …)(λx. …) без half. Связать с x x.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s23_9dc37885500dd194.mp4"
+          >
+            <aside class="notes" data-markdown>Рекурсивный вызов — `self(self)(n−1)`, не `half(…)`. Переименуйте `half` в `foo` — тело менять не нужно.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s23_2388c1d304866dce.mp4"
+          >
+            <aside class="notes" data-markdown>`half(half)` — не «рекурсия по имени half», а один раз передали функцию самой себе как аргумент.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s23_c40d3f23086abc3f.mp4"
+          >
+            <aside class="notes" data-markdown>В λ-записи «примени к себе» — это λx. x x. Подставляем half на оба места x.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s23_dbfa7256fc224ac5.mp4"
+          >
+            <aside class="notes" data-markdown>Тот же x x, что в парадоксе Рассела и в Ω. Здесь самоприменение не ломает систему, а работает на нас.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s23_24c3616bc3b93597.mp4"
+          >
+            <aside class="notes" data-markdown>Хочется писать обычный F с f(n − 1), а самоприменение спрятать в отдельную машинку. Её и выведем.
+
+**Если спросят**
+
+- *Разве half(half) — не рекурсия по имени?* — По имени — когда *тело* ссылается на имя функции (fact внутри fact). Здесь тело зовёт self; half только на старте. Аналог: Y и F — тоже имена в JS, но смысл — неподвижная точка без self-reference по имени в F.
+- *Почему self(self), а не self?* — self — функция, которой нужен ещё один аргумент — она сама. Поэтому self(self)(n−1).
+- *Это работает в обычном JS?* — Да, код со слайда можно вставить в консоль браузера.
+
+**Переход:** Некрасиво: self(self) вшито в тело. Вынесем этот трюк в универсальную функцию.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s24_2d199f9aade7f89e.mp4"
+          >
+            <aside class="notes" data-markdown>Вернёмся к half. Зелёным — self(self): вызов self(self)(n − 1) считает факториал от n − 1, то есть играет роль fact.
+
+**Контекст:** Три шага, каждый меняет одно (зелёным). Шаг 1: self(self) играет роль fact. Шаг 2: всё остальное — F. Шаг 3: F в параметр, half по месту — две одинаковые половинки. Здесь только «как получается», «почему работает» — на следующем слайде.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s24_b1cfb030bfdec1cd.mp4"
+          >
+            <aside class="notes" data-markdown>Всё, кроме self(self), — это F из слайда про улучшатель. Значит, half = F, которому вместо f передали self(self).</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s24_bfc7e83d88c610f8.mp4"
+          >
+            <aside class="notes" data-markdown>Сделаем F параметром и подставим half по месту вместо имени. Две одинаковые половинки x => F(x(x)) — это Y. F может быть любым.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s24_d2bd7c0fdeed9bb1.mp4"
+          >
+            <aside class="notes" data-markdown>То же в λ-нотации. Это Y-комбинатор Карри. Дальше — почему он работает.
+
+**Если спросят**
+
+- *Почему «парадоксальный комбинатор»?* — Карри нашёл его, анализируя парадоксы в комбинаторной логике: тот же механизм самоприменения, что и у Рассела.
+- *Y Combinator назван в честь этого?* — Да. Пол Грэм — лиспер, название — шутка для своих.
+- *Единственный ли это комбинатор?* — Нет, их бесконечно много. Например, Θ Тьюринга (1937).
+- *Шаг 2 работает в консоли?* — Нет: в JS self(self) вычисляется сразу и зациклится. Починка (Z) — в конце раздела.
+
+**Переход:** Почему эта странная конструкция даёт факториал?</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s25_ac1c832623c3adc0.mp4"
+          >
+            <aside class="notes" data-markdown>Дадим имя половинке Y: g берёт x и возвращает F от x x. Тогда Y F — это просто g, применённое к g.
+
+**Контекст:** Главный слайд про Y. g g воспроизводит себя, дописывая F снаружи: Y F = F(F(F(…))). Связать с косинусом и таблицей f₀, f₁, f₂ — это та же итерация. Вывод «сними одну F — та же башня» даёт Y F = F(Y F) без алгебры.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s25_1bb29b5c43b494c5.mp4"
+          >
+            <aside class="notes" data-markdown>Один β-шаг: g применяем к g, на место x подставляем g. Получаем F(g g). Внутри снова g g!</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s25_6bf35779cf029d3c.mp4"
+          >
+            <aside class="notes" data-markdown>g g снова превращается в F(g g). Каждый шаг дописывает одну F снаружи.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s25_714e085a9ab533aa.mp4"
+          >
+            <aside class="notes" data-markdown>И так без конца: башня F(F(F(…))).</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s25_bdb75ed0b32ca63f.mp4"
+          >
+            <aside class="notes" data-markdown>Сравните с косинусом: жали cos снова и снова — пришли к неподвижной точке 0.739. Тут F применяется снова и снова, как строки таблицы f₀, f₁, f₂. Предел — факториал.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s25_84353b78e7821827.mp4"
+          >
+            <aside class="notes" data-markdown>Главное: если от бесконечной башни отнять одну F сверху, останется та же башня. Значит, Y F = F(Y F) — это ровно уравнение fact = F(fact).
+
+**Если спросят**
+
+- *Башня бесконечная — как это вычисляется?* — Лениво: этаж достраивается, только когда F зовёт f. Следующий слайд.
+- *Почему стартуем с ⊥?* — Конечная башня F(F(F(⊥))) — это строка таблицы: знает ответы до n = 2. Бесконечная знает все.
+
+**Переход:** Посмотрим, как башня достраивается на 2!.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s26_e48f4a3e5e6b6c15.mp4"
+          >
+            <aside class="notes" data-markdown>Хотим 2!. Y подаёт в F рекурсивный вызов f = Y(F). n = 2, не ноль — ветка n * f(n − 1), то есть 2 * Y(F)(1).
+
+**Контекст:** Матрёшка: вглубь — пока F просит f, наружу — умножения. Ключ: при n = 0 F не зовёт f, новый этаж не нужен — поэтому не зацикливается. Справа честно про JS: голый Y зациклится, Z откладывает x(x) обёрткой v => ….</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s26_a24f4b12372d4363.mp4"
+          >
+            <aside class="notes" data-markdown>Чтобы умножить, нужен Y(F)(1). Только сейчас появляется следующий этаж — ещё одна F.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s26_1fd864c1bc0eb2ae.mp4"
+          >
+            <aside class="notes" data-markdown>n = 0: F возвращает 1 и f не зовёт. Новый этаж не нужен — башня обрывается. Поэтому нет зацикливания.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s26_547d78aa6701f06e.mp4"
+          >
+            <aside class="notes" data-markdown>Наружу: внутренний вернул 1, средний 1 * 1 = 1, внешний 2 * 1 = 2. Имя fact ни разу не понадобилось.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s26_55d6d2d302292eb5.mp4"
+          >
+            <aside class="notes" data-markdown>Если вставить Y в консоль, он зациклится: JS вычисляет x(x) сразу. Обёртка v => … откладывает вызов — это Z, его можно проверить в браузере.
+
+**Если спросят**
+
+- *Это похоже на стек вызовов?* — Да, ровно он: каждая рамка — кадр стека fact(n).
+- *Почему в Haskell не нужен Z?* — Haskell ленивый: аргумент не вычисляется, пока не нужен. Там fix f = f (fix f) работает напрямую.
+- *Другие F?* — Ffib = f => n => n < 2 ? n : f(n-1) + f(n-2); Z(Ffib)(10) — 55. Тот же Z.
+
+**Переход:** Y работает в НЛИ. Чем ТЛИ отличается от НЛИ — один слайд.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s27_f2156ac39e6555b6.mp4"
+          >
+            <aside class="notes" data-markdown>Два λ-исчисления Чёрча. Мы всю лекцию строили в НЛИ — отсюда Y.
+
+**Контекст:** Единственный слайд про типы. НЛИ vs ТЛИ: главное — строка x x / Ω / Y. Связать с пройденным: мы строили Y в бестиповом λ. В ТЛИ Y «из коробки» нет.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s27_92fe77b9e0a28207.mp4"
+          >
+            <aside class="notes" data-markdown>НЛИ = неограниченное применение. Ошибки — в runtime, как в JS.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s27_b8a9b3f942502a03.mp4"
+          >
+            <aside class="notes" data-markdown>Главная строка: x должен быть и аргументом, и функцией одновременно — противоречие. Поэтому в ТЛИ нет Y «из коробки».</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s27_3d53e46ec1ad7893.mp4"
+          >
+            <aside class="notes" data-markdown>Сильная нормализация: любое вычисление в чистом ТЛИ конечно. Языки добавляют рекурсию явно.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s27_a87e4554f9f0c92a.mp4"
+          >
+            <aside class="notes" data-markdown>Не «лучше/хуже»: динамика ближе к НЛИ, статическая проверка — к ТЛИ.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s27_ca1d6c79e85e604c.mp4"
+          >
+            <aside class="notes" data-markdown>Следующий блок — куда это попало в компиляторы и в ваш код.
+
+**Если спросят**
+
+- *Значит, в TypeScript нет бесконечных циклов?* — Есть: языки добавляют рекурсию отдельно. Чистое ТЛИ гарантирует завершение.
+- *Есть ли практичные языки, где всё завершается?* — Тотальные режимы: Agda, Idris (total), Dhall.
+
+**Переход:** Где это в компиляторе и в вашем коде?</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s28_5f49f09eb563ac2d.mp4"
+          >
+            <aside class="notes" data-markdown>Так устроены GHC (Haskell → Core, типизированное λ), OCaml, Scala. Замыкания и SSA — те же идеи — есть и в V8, и в LLVM.
+
+**Контекст:** Одна таблица — пять этапов, каждый со ссылкой на уже пройденную идею. Не углубляться: цель — показать, что λ и типы не абстракция, а рабочий инструмент внутри каждого компилятора.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s28_4cec37750d37189e.mp4"
+          >
+            <aside class="notes" data-markdown>Ландин, «The Next 700 Programming Languages» (1966): любой язык — λ-ядро плюс синтаксический сахар.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s28_f4947844c08e826d.mp4"
+          >
+            <aside class="notes" data-markdown>Компилятор с типами — это проверщик доказательств из прошлого слайда. TypeScript и Rust делают то же, с оговорками.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s28_864c43ad329bb2e3.mp4"
+          >
+            <aside class="notes" data-markdown>Inlining — это буквально β-редукция. Чёрч–Россер гарантирует, что порядок оптимизаций не меняет результат чистого кода.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s28_49bb9e1ca71f7164.mp4"
+          >
+            <aside class="notes" data-markdown>Closure conversion: x => x + n превращается в пару «код + окружение {n}». Похожим образом V8 хранит захваченные переменные в объекте-контексте.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s28_6b052b536cfaac5d.mp4"
+          >
+            <aside class="notes" data-markdown>Последний шаг — мост Чёрч–Тьюринг, который компилятор перестраивает при каждой сборке.
+
+**Если спросят**
+
+- *Что такое CPS?* — Continuation-passing style: каждая функция получает «что делать дальше» явным аргументом. Порядок вычисления становится явным, как у машины.
+- *А SSA?* — Appel (1998): SSA-форма в LLVM и GCC — это функциональная программа в другой записи.
+
+**Переход:** Теория позади. Как эти идеи стали стилем программирования?</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s29_54650964c911b0e2.mp4"
+          >
+            <aside class="notes" data-markdown>Ссылочная прозрачность: sq(3) можно заменить на 9, и смысл программы не изменится. С функцией, которая меняет внешний счётчик, так нельзя.
+
+**Контекст:** ФП одним слайдом: три привычки, каждая — прямое следствие λ. Не углубляться: аудитория пишет map/filter каждый день. Акцент: это стиль, доступный в любом языке, а не Haskell.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s29_d6fe12c4a554e1c7.mp4"
+          >
+            <aside class="notes" data-markdown>Функции высшего порядка: «оставь оплаченные, возьми суммы». reduce — это список Чёрча, «сверни меня».</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s29_f711a18b1c4cac4b.mp4"
+          >
+            <aside class="notes" data-markdown>Redux, React state, Clojure, Immer. Новые версии структуры разделяют общие части, поэтому копировать всё не нужно.
+
+**Если спросят**
+
+- *ФП против ООП?* — Не против. Объект — набор функций с общим состоянием, замыкание — функция с окружением. Современные языки смешивают оба стиля.
+- *Почему ФП стало популярно в 2010-х?* — Многоядерность (нужна безопасная параллельность), асинхронность (коллбэки и промисы), фронтенд (React, Redux), большие данные (MapReduce, Spark).
+- *Как это сделать в TypeScript?* — Размеченное объединение: type Shape = { kind: 'circle', r: number } | { kind: 'rect', w: number, h: number } и switch по kind; never в default проверяет полноту.
+- *Но любая программа меняет состояние?* — Да, поэтому эффекты не запрещают, а изолируют: чистое ядро, эффекты на краю. Об этом следующий слайд.
+
+**Переход:** Всё чистое и неизменяемое. Но программа должна что-то печатать и сохранять.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s30_c478ff242a9ddc50.mp4"
+          >
+            <aside class="notes" data-markdown>Всё, ради чего пишут реальные программы, — снаружи трёх форм.
+
+**Контекст:** Честно назвать границу модели: эффекты не выражаются в чистом λ. Главная практическая мысль — архитектура «чистое ядро, эффекты по краям».</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s30_470115f9d73a906c.mp4"
+          >
+            <aside class="notes" data-markdown>Моджи (1989) и Вадлер. Программа на Haskell — чистая функция, которая возвращает план действий. Выполняет план рантайм.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s30_bec0a765372a78f2.mp4"
+          >
+            <aside class="notes" data-markdown>Promise не совсем монада по законам, но мысль та же.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s30_f4a71ddf8e40f38c.mp4"
+          >
+            <aside class="notes" data-markdown>Functional core, imperative shell — Гэри Бернхардт. Прямое следствие всей лекции.
+
+**Если спросят**
+
+- *Что такое монада простыми словами?* — Способ склеивать вычисления с контекстом (ошибка, асинхронность, состояние), где склейку определяет сам контекст. Promise.then — близкий пример.
+- *Можно ли совсем без эффектов?* — Нет — программа без ввода-вывода бесполезна. Можно отделить их и держать на краю системы.
+
+**Переход:** Как λ пришло в индустрию?</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s31_1b94d7905bb7edbd.mp4"
+          >
+            <aside class="notes" data-markdown>Линия времени — от академии к мейнстриму.
+
+**Контекст:** Линия времени — от академии к мейнстриму. Акцент: лямбды появились в популярных языках не потому, что «ФП модно», а потому, что функции высшего порядка решают реальные задачи (коллбэки, коллекции, асинхронность).</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s31_7662e708820ccc8c.mp4"
+          >
+            <aside class="notes" data-markdown>Первые четыре — академическая линия. Каждая следующая точка ближе к вашей работе.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s31_a695acec87d39f7f.mp4"
+          >
+            <aside class="notes" data-markdown>В Lisp ещё была динамическая область видимости — та самая ловушка с захватом.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s31_959be1ffcb146c76.mp4"
+          >
+            <aside class="notes" data-markdown>«The Next 700 Programming Languages» — одна из самых влиятельных статей о дизайне языков.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s31_04777ac4e57e519e.mp4"
+          >
+            <aside class="notes" data-markdown>Java шла к лямбдам почти 20 лет. Теперь их нет разве что в C.
+
+**Если спросят**
+
+- *Lisp был первым функциональным языком?* — Первым массовым с функциями как значениями. Но с динамической областью видимости — «настоящие» λ-замыкания пришли со Scheme.
+- *А Python?* — lambda появилась в 1994 году (Python 1.0). Гвидо ван Россум позже хотел её убрать, но сообщество отстояло.
+
+**Переход:** Подведём итог.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s32_0c114fc585efff05.mp4"
+          >
+            <aside class="notes" data-markdown>x ∉ x, paradox(paradox), Ω, Y — одна и та же петля.
+
+**Контекст:** Каждая строка — одна из частей лекции. Можно читать вслух. В конце — песочница и вопросы.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s32_721319e3cd75dc49.mp4"
+          >
+            <aside class="notes" data-markdown>Тезис Чёрча–Тьюринга: все разумные модели равны по силе.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s32_5b9edfe0a6381f8a.mp4"
+          >
+            <aside class="notes" data-markdown>β и Чёрч–Россер.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s32_b29cd931fd23390c.mp4"
+          >
+            <aside class="notes" data-markdown>Кодирование Чёрча; от cos x = x к Y через улучшатель F.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s32_63c94239fb353afe.mp4"
+          >
+            <aside class="notes" data-markdown>НЛИ/ТЛИ, x x.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s32_45536bf06c510cae.mp4"
+          >
+            <aside class="notes" data-markdown>Лямбды в вашем языке, React, Redux, async/await — прямые потомки ответа на вопрос Гильберта.</aside>
+        </section>
+        <section
+          data-background-size='contain'
+          data-background-color="#1c1c1c"
+          data-background-video="talk_assets/s32_e34a8f70c166747a.mp4"
+          >
+            <aside class="notes" data-markdown>Вопросы? Можно остаться поиграть с песочницей или пройти уроки по порядку.
+
+**Если спросят**
+
+- *С чего начать изучение?* — SICP — интерпретаторы; Пирс — типы; Петцольд — история. Песочница в репозитории — β-редукция.
+- *Где поиграть с доказательствами?* — Lean 4, Natural Number Game в браузере.
+
+**Переход:** Спасибо. Вопросы?</aside>
+        </section>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@6.0.1/dist/reveal.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@6.0.1/dist/plugin/notes.js"></script>
+
+    <!-- To include plugins, see: https://revealjs.com/plugins/ -->
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@6.0.1/dist/plugin/markdown.js"></script>
+
+    <!-- <script src="index.js"></script> -->
+    <script>
+      Reveal.initialize({
+        /// The list of RevealJS plugins.
+        plugins: [ RevealMarkdown, RevealNotes ],
+        // The "normal" size of the presentation, aspect ratio will
+        // be preserved when the presentation is scaled to fit different
+        // resolutions. Can be specified using percentage units.
+        width: '100%',
+        height: '100%',
+        // Factor of the display size that should remain empty around
+        // the content
+        margin: 0.04,
+        // Bounds for smallest/largest possible scale to apply to content
+        minScale: 0.2,
+        maxScale: 2.0,
+        // Display presentation control arrows
+        controls: false,
+        // Help the user learn the controls by providing hints, for example by
+        // bouncing the down arrow when they first encounter a vertical slide
+        controlsTutorial: true,
+        // Determines where controls appear, "edges" or "bottom-right"
+        controlsLayout: 'bottom-right',
+        // Visibility rule for backwards navigation arrows; "faded", "hidden"
+        // or "visible"
+        controlsBackArrows: 'faded',
+        // Display a presentation progress bar
+        progress: false,
+        // Display the page number of the current slide
+        // - true:    Show slide number
+        // - false:   Hide slide number
+        //
+        // Can optionally be set as a string that specifies the number formatting:
+        // - "h.v":   Horizontal . vertical slide number (default)
+        // - "h/v":   Horizontal / vertical slide number
+        // - "c":   Flattened slide number
+        // - "c/t":   Flattened slide number / total slides
+        //
+        // Alternatively, you can provide a function that returns the slide
+        // number for the current slide. The function should take in a slide
+        // object and return an array with one string [slideNumber] or
+        // three strings [n1,delimiter,n2]. See #formatSlideNumber().
+        slideNumber: false,
+        // Can be used to limit the contexts in which the slide number appears
+        // - "all":      Always show the slide number
+        // - "print":    Only when printing to PDF
+        // - "speaker":  Only in the speaker view
+        showSlideNumber: 'all',
+        // Use 1 based indexing for # links to match slide number (default is zero
+        // based)
+        hashOneBasedIndex: false,
+        // Add the current slide number to the URL hash so that reloading the
+        // page/copying the URL will return you to the same slide
+        hash: false,
+        // Flags if we should monitor the hash and change slides accordingly
+        respondToHashChanges: false,
+        // Enable support for jump-to-slide navigation shortcuts
+        jumpToSlide: true,
+        // Push each slide change to the browser history.  Implies `hash: true`
+        history: false,
+        // Enable keyboard shortcuts for navigation
+        keyboard: true,
+        // Optional function that blocks keyboard events when retuning false
+        //
+        // If you set this to 'focused', we will only capture keyboard events
+        // for embedded decks when they are in focus
+        keyboardCondition: null,
+        // Disables the default reveal.js slide layout (scaling and centering)
+        // so that you can use custom CSS layout
+        disableLayout: false,
+        // Enable the slide overview mode
+        overview: true,
+        // Vertical centering of slides
+        center: true,
+        // Enables touch navigation on devices with touch input
+        touch: true,
+        // Loop the presentation
+        loop: false,
+        // Change the presentation direction to be RTL
+        rtl: false,
+        // Changes the behavior of our navigation directions.
+        //
+        // "default"
+        // Left/right arrow keys step between horizontal slides, up/down
+        // arrow keys step between vertical slides. Space key steps through
+        // all slides (both horizontal and vertical).
+        //
+        // "linear"
+        // Removes the up/down arrows. Left/right arrows step through all
+        // slides (both horizontal and vertical).
+        //
+        // "grid"
+        // When this is enabled, stepping left/right from a vertical stack
+        // to an adjacent vertical stack will land you at the same vertical
+        // index.
+        //
+        // Consider a deck with six slides ordered in two vertical stacks:
+        // 1.1    2.1
+        // 1.2    2.2
+        // 1.3    2.3
+        //
+        // If you're on slide 1.3 and navigate right, you will normally move
+        // from 1.3 -> 2.1. If "grid" is used, the same navigation takes you
+        // from 1.3 -> 2.3.
+        navigationMode: 'default',
+        // Randomizes the order of slides each time the presentation loads
+        shuffle: false,
+        // Turns fragments on and off globally
+        fragments: true,
+        // Flags whether to include the current fragment in the URL,
+        // so that reloading brings you to the same fragment position
+        fragmentInURL: true,
+        // Flags if the presentation is running in an embedded mode,
+        // i.e. contained within a limited portion of the screen
+        embedded: false,
+        // Flags if we should show a help overlay when the question-mark
+        // key is pressed
+        help: true,
+        // Flags if it should be possible to pause the presentation (blackout)
+        pause: true,
+        // Flags if speaker notes should be visible to all viewers
+        showNotes: false,
+        // Global override for autolaying embedded media (video/audio/iframe)
+        // - null:   Media will only autoplay if data-autoplay is present
+        // - true:   All media will autoplay, regardless of individual setting
+        // - false:  No media will autoplay, regardless of individual setting
+        autoPlayMedia: null,
+        // Global override for preloading lazy-loaded iframes
+        // - null:   Iframes with data-src AND data-preload will be loaded when within
+        //           the viewDistance, iframes with only data-src will be loaded when visible
+        // - true:   All iframes with data-src will be loaded when within the viewDistance
+        // - false:  All iframes with data-src will be loaded only when visible
+        preloadIframes: null,
+        // Can be used to globally disable auto-animation
+        autoAnimate: true,
+        // Optionally provide a custom element matcher that will be
+        // used to dictate which elements we can animate between.
+        autoAnimateMatcher: null,
+        // Default settings for our auto-animate transitions, can be
+        // overridden per-slide or per-element via data arguments
+        autoAnimateEasing: 'ease',
+        autoAnimateDuration: 1.0,
+        autoAnimateUnmatched: true,
+        // CSS properties that can be auto-animated. Position & scale
+        // is matched separately so there's no need to include styles
+        // like top/right/bottom/left, width/height or margin.
+        autoAnimateStyles: ['opacity', 'color', 'background-color', 'padding', 'font-size', 'line-height', 'letter-spacing', 'border-width', 'border-color', 'border-radius', 'outline', 'outline-offset'],
+        // Controls automatic progression to the next slide
+        // - 0:      Auto-sliding only happens if the data-autoslide HTML attribute
+        //           is present on the current slide or fragment
+        // - 1+:     All slides will progress automatically at the given interval
+        // - false:  No auto-sliding, even if data-autoslide is present
+        autoSlide: 0,
+        // Stop auto-sliding after user input
+        autoSlideStoppable: true,
+        // Use this method for navigation when auto-sliding (defaults to navigateNext)
+        autoSlideMethod: null,
+        // Specify the average time in seconds that you think you will spend
+        // presenting each slide. This is used to show a pacing timer in the
+        // speaker view
+        defaultTiming: null,
+        // Enable slide navigation via mouse wheel
+        mouseWheel: false,
+        // Opens links in an iframe preview overlay
+        // Add `data-preview-link` and `data-preview-link="false"` to customize each link
+        // individually
+        previewLinks: false,
+        // Exposes the reveal.js API through window.postMessage
+        postMessage: true,
+        // Dispatches all reveal.js events to the parent window through postMessage
+        postMessageEvents: false,
+        // Focuses body when page changes visibility to ensure keyboard shortcuts work
+        focusBodyOnPageVisibilityChange: true,
+        // Transition style
+        transition: 'none', // none/fade/slide/convex/concave/zoom
+        // Transition speed
+        transitionSpeed: 'default', // default/fast/slow
+        // Transition style for full page slide backgrounds
+        backgroundTransition: 'none', // none/fade/slide/convex/concave/zoom
+        // The maximum number of pages a single slide can expand onto when printing
+        // to PDF, unlimited by default
+        pdfMaxPagesPerSlide: Number.POSITIVE_INFINITY,
+        // Prints each fragment on a separate slide
+        pdfSeparateFragments: true,
+        // Offset used to reduce the height of content within exported PDF pages.
+        // This exists to account for environment differences based on how you
+        // print to PDF. CLI printing options, like phantomjs and wkpdf, can end
+        // on precisely the total height of the document whereas in-browser
+        // printing has to end one pixel before.
+        pdfPageHeightOffset: -1,
+        // Number of slides away from the current that are visible
+        viewDistance: 3,
+        // Number of slides away from the current that are visible on mobile
+        // devices. It is advisable to set this to a lower number than
+        // viewDistance in order to save resources.
+        mobileViewDistance: 2,
+        // The display mode that will be used to show slides
+        display: 'block',
+        // Hide cursor if inactive
+        hideInactiveCursor: true,
+        // Time before the cursor is hidden (in ms)
+        hideCursorTime: 5000
+      });
+      // Override SPACE to play / pause the video
+      Reveal.addKeyBinding(
+        {
+          keyCode: 32,
+          key: 'SPACE',
+          description: 'Play / pause video'
+        },
+        () => {
+          var currentVideos = Reveal.getCurrentSlide().slideBackgroundContentElement.getElementsByTagName("video");
+          if (currentVideos.length > 0) {
+            if (currentVideos[0].paused == true) currentVideos[0].play();
+            else currentVideos[0].pause();
+          } else {
+            Reveal.next();
+          }
+        }
+      );
+    </script>
+
+    <style>
+      .site-nav {
+        position: fixed; bottom: 0.65rem; left: 0.75rem; z-index: 40;
+        margin: 0; font: 0.78rem system-ui, sans-serif; opacity: 0.5;
+        pointer-events: none;
+      }
+      .site-nav a { color: #58c4dd; text-decoration: none; pointer-events: auto; }
+      .site-nav a:hover { opacity: 1; }
+    </style>
+    <p class="site-nav"><a href="playground/">Песочница →</a></p>
+  </body>
+</html>

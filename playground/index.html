@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>λ-песочница — вычисление по шагам</title>
+<style>
+  :root {
+    --bg: #1c1c1c;
+    --ink: #f4f4f4;
+    --muted: #9c9c9c;
+    --dim: #7a7a7a;
+    --gold: #f6c445;
+    --sky: #58c4dd;
+    --coral: #ff6b6b;
+    --mint: #83c167;
+    --card: #2a2a2a;
+    --line: #3f3f3f;
+    --serif: "Linux Libertine O", "Noto Serif", serif;
+    --sans: "Noto Sans", system-ui, sans-serif;
+    --mono: "iA Writer Mono S", "Noto Sans Mono", monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--ink); }
+  body { font-family: var(--sans); line-height: 1.5; }
+  code { font-family: var(--mono); color: var(--sky); font-size: 0.92em; }
+  .wrap { display: grid; grid-template-columns: 19rem minmax(0, 1fr); min-height: 100vh; }
+
+  aside { border-right: 1px solid var(--line); padding: 1.4rem 1rem 2rem; overflow-y: auto; max-height: 100vh; position: sticky; top: 0; }
+  .kicker { font-size: 0.72rem; letter-spacing: 0.16em; color: var(--gold); margin: 0 0 0.3rem; font-weight: 700; text-transform: uppercase; }
+  aside h1 { font-size: 1.45rem; line-height: 1.15; margin: 0 0 0.4rem; }
+  aside .lead { color: var(--muted); font-size: 0.85rem; margin: 0 0 1rem; }
+  .chapter { margin: 1rem 0 0.3rem; font-size: 0.78rem; color: var(--dim); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; }
+  button.ex {
+    display: flex; gap: 0.55rem; width: 100%; text-align: left; background: transparent; color: var(--muted);
+    border: 0; border-left: 2px solid transparent; padding: 0.32rem 0.55rem; font-family: var(--sans); font-size: 0.9rem; cursor: pointer;
+  }
+  button.ex .num { font-family: var(--mono); color: var(--dim); font-size: 0.78rem; min-width: 2.1rem; padding-top: 0.1rem; }
+  button.ex.done .num { color: var(--mint); }
+  button.ex.on, button.ex:hover { color: var(--ink); border-left-color: var(--gold); background: rgba(246, 196, 69, 0.06); }
+
+  main { padding: 1.8rem 5vw 3rem; max-width: 72rem; }
+  .head h2 { font-size: 1.9rem; margin: 0 0 0.5rem; line-height: 1.2; }
+  .idea { font-size: 1.05rem; margin: 0 0 1.2rem; max-width: 52rem; }
+
+  .modes { display: flex; gap: 1.2rem; align-items: baseline; flex-wrap: wrap; margin-bottom: 0.6rem; }
+  .modes button {
+    background: none; border: 0; color: var(--dim); font-family: var(--sans); font-size: 0.9rem; letter-spacing: 0.06em;
+    text-transform: uppercase; padding: 0 0 0.25rem; border-bottom: 2px solid transparent; cursor: pointer; font-weight: 700;
+  }
+  .modes button.on { color: var(--gold); border-bottom-color: var(--gold); }
+  .modes .hint { color: var(--dim); font-size: 0.85rem; }
+
+  .stage { border-top: 2px solid var(--gold); background: var(--card); padding: 1.1rem 1.2rem 0.9rem; border-radius: 0 0 6px 6px; }
+  #term { font-family: var(--serif); font-size: clamp(1.4rem, 2.6vw, 2.2rem); line-height: 1.4; margin: 0; overflow-wrap: anywhere; min-height: 3rem; }
+  .redex { color: var(--coral); background: rgba(255, 107, 107, 0.12); box-shadow: inset 0 -2px 0 var(--coral); border-radius: 2px; }
+  .status { min-height: 1.5rem; color: var(--muted); margin: 0.7rem 0 0; font-size: 0.95rem; }
+  .status.bad { color: var(--coral); }
+  .status.good { color: var(--mint); }
+  .value { color: var(--gold); font-weight: 700; }
+
+  .controls { display: flex; gap: 0.6rem; flex-wrap: wrap; margin: 1rem 0 0; align-items: center; }
+  button.act { font-family: var(--sans); font-size: 0.95rem; border-radius: 4px; padding: 0.5rem 0.95rem; cursor: pointer; }
+  button.primary { background: var(--gold); color: #1a140c; border: 1px solid var(--gold); font-weight: 700; }
+  button.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  button.ghost:hover { border-color: var(--muted); }
+  button:disabled { opacity: 0.4; cursor: default; }
+  .keys { color: var(--dim); font-size: 0.8rem; margin-left: auto; }
+
+  .boxes { display: grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: 0.9rem; margin: 1.4rem 0 0; }
+  .box { background: var(--card); border-left: 3px solid var(--sky); padding: 0.75rem 1rem; border-radius: 4px; }
+  .box.try { border-left-color: var(--mint); }
+  .box h3 { margin: 0 0 0.35rem; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .box p { margin: 0; }
+
+  .nav { display: flex; justify-content: space-between; gap: 1rem; margin: 1.4rem 0 0; }
+
+  details { margin-top: 1.4rem; border-top: 1px solid var(--line); padding-top: 0.8rem; }
+  summary { cursor: pointer; color: var(--muted); font-weight: 700; letter-spacing: 0.04em; }
+  summary:hover { color: var(--ink); }
+  textarea {
+    width: 100%; margin-top: 0.6rem; min-height: 4.5rem; resize: vertical; background: var(--card); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 4px; padding: 0.7rem 0.8rem; font-family: var(--mono); font-size: 0.95rem;
+  }
+  .help { color: var(--muted); font-size: 0.92rem; }
+  .help ul { margin: 0.4rem 0; padding-left: 1.2rem; }
+  .dict { display: grid; grid-template-columns: max-content 1fr; gap: 0.25rem 1rem; margin-top: 0.7rem; font-size: 0.92rem; }
+  .dict button { background: none; border: 0; color: var(--gold); font-family: var(--mono); cursor: pointer; text-align: left; padding: 0; font-size: 0.92rem; }
+  .dict span { font-family: var(--serif); color: var(--ink); font-size: 1.05rem; }
+  .dict em { color: var(--dim); font-style: normal; font-family: var(--sans); font-size: 0.85rem; margin-left: 0.5rem; }
+
+  ol.trace { margin: 0.6rem 0 0; padding: 0; list-style: none; font-family: var(--serif); font-size: 1.02rem; color: var(--muted); max-height: 22rem; overflow-y: auto; }
+  ol.trace li { padding: 0.15rem 0; overflow-wrap: anywhere; }
+  ol.trace li b { color: var(--dim); font-family: var(--mono); font-weight: 400; font-size: 0.8rem; margin-right: 0.5rem; }
+  ol.trace li.last { color: var(--ink); }
+
+  @media (max-width: 900px) {
+    .wrap { grid-template-columns: 1fr; }
+    aside { border-right: 0; border-bottom: 1px solid var(--line); position: static; max-height: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <aside>
+    <p class="kicker">λ-песочница</p>
+    <h1>Вычисление по шагам</h1>
+    <p class="lead">Уроки идут от простого к сложному. В каждом — одна идея, терм и подсказка, что попробовать.</p>
+    <p class="lead"><a href="../" style="color: var(--sky);">← Слайды</a></p>
+    <nav id="lessons"></nav>
+  </aside>
+
+  <main>
+    <div class="head">
+      <p class="kicker" id="chapter"></p>
+      <h2 id="title"></h2>
+      <p class="idea" id="idea"></p>
+    </div>
+
+    <div class="modes">
+      <button type="button" id="by-name" class="on">по имени</button>
+      <button type="button" id="by-value">по значению</button>
+      <span class="hint" id="mode-hint"></span>
+    </div>
+    <div class="stage">
+      <p id="term"></p>
+      <p class="status" id="status"></p>
+    </div>
+    <div class="controls">
+      <button class="act primary" id="step" type="button">шаг →</button>
+      <button class="act ghost" id="back" type="button">← назад</button>
+      <button class="act ghost" id="run" type="button">до конца</button>
+      <button class="act ghost" id="reset" type="button">сначала</button>
+      <span class="keys">→ / пробел — шаг, ← — назад</span>
+    </div>
+
+    <div class="boxes">
+      <div class="box"><h3>На что смотреть</h3><p id="watch"></p></div>
+      <div class="box try"><h3>Попробуйте</h3><p id="try"></p></div>
+    </div>
+
+    <div class="nav">
+      <button class="act ghost" id="prev" type="button">← предыдущий урок</button>
+      <button class="act ghost" id="next" type="button">следующий урок →</button>
+    </div>
+
+    <details open>
+      <summary>Свой терм</summary>
+      <textarea id="source" spellcheck="false"></textarea>
+      <div class="help">
+        <ul>
+          <li><code>λ</code> можно набирать как <code>\</code>: <code>\x. x</code> — то же, что <code>λx. x</code>, то есть <code>x =&gt; x</code>.</li>
+          <li>Применение — пробел: <code>f a b</code> значит <code>(f a) b</code>, как <code>f(a)(b)</code> в JS.</li>
+          <li>Тело λ тянется вправо до конца: <code>λx. f x</code> — это <code>λx. (f x)</code>.</li>
+          <li>Имена из словаря (<code>TRUE</code>, <code>TWO</code>, <code>Y</code>…) — сокращения. Они раскрываются, только когда их вызывают.</li>
+          <li>Подсвеченный кусок — <span class="redex">редекс</span>: вызов, который будет выполнен следующим шагом.</li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>Словарь определений</summary>
+      <div class="dict" id="dict"></div>
+    </details>
+
+    <details open>
+      <summary>Ход вычисления</summary>
+      <ol class="trace" id="trace"></ol>
+    </details>
+  </main>
+</div>
+
+<script type="module">
+import { DEFINITIONS, ENV, decode, findRedex, parse, plain, pretty, step } from "./reducer.mjs";
+
+const LESSONS = [
+  {
+    chapter: "1. Основы",
+    title: "Вызов — это подстановка",
+    src: "(λx. x) y",
+    idea: "Самая короткая функция: <code>λx. x</code>, в JS — <code>x =&gt; x</code>. Применяем её к <code>y</code>. Единственное правило вычисления (β-редукция): вместо параметра подставить аргумент.",
+    watch: "Подсвечен весь вызов — это редекс. После шага обёртка <code>(λx. …)</code> исчезает, а <code>y</code> встаёт на место <code>x</code>.",
+    try: "Замените <code>y</code> на функцию <code>(λz. z z)</code>: функции можно передавать аргументами, как любые значения.",
+  },
+  {
+    chapter: "1. Основы",
+    title: "Два аргумента — два шага",
+    src: "(λx. λy. x) a b",
+    idea: "Аргумент у функции всегда один. «Функция двух аргументов» — это функция, которая возвращает функцию: <code>x =&gt; y =&gt; x</code>. Это каррирование.",
+    watch: "Первый шаг подставляет <code>a</code> вместо <code>x</code>. Второй — подставлять <code>b</code> некуда: в теле нет <code>y</code>, и <code>b</code> просто выбрасывается.",
+    try: "Поменяйте тело на <code>y</code>: <code>(λx. λy. y) a b</code>. Теперь выброшен первый аргумент.",
+  },
+  {
+    chapter: "1. Основы",
+    title: "Частичное применение",
+    src: "(λx. λy. x) a",
+    idea: "Если передать только один аргумент из двух, получится не ошибка, а новая функция, которая ждёт оставшийся аргумент.",
+    watch: "Результат — <code>λy. a</code>: функция, которая на любой аргумент вернёт <code>a</code>. Вычисление остановилось, потому что вызывать больше нечего — это нормальная форма.",
+    try: "Допишите в конце <code>c</code>: <code>(λx. λy. x) a c</code> — ответ <code>a</code>.",
+  },
+  {
+    chapter: "1. Основы",
+    title: "Функция высшего порядка",
+    src: "(λf. λx. f (f x)) g a",
+    idea: "Функция получает функцию <code>f</code> и применяет её дважды — как <code>f =&gt; x =&gt; f(f(x))</code>.",
+    watch: "После двух шагов остаётся <code>g (g a)</code>. Дальше считать нечего: <code>g</code> — свободное имя, мы не знаем, что это за функция.",
+    try: "Подставьте вместо <code>g</code> функцию <code>(λz. z)</code> — тогда вызовы <code>g</code> тоже вычислятся.",
+  },
+  {
+    chapter: "1. Основы",
+    title: "Захват имени",
+    src: "(λx. λy. x) y",
+    idea: "Подстановка — не поиск-и-замена текста. Аргумент <code>y</code> — свободное имя «снаружи», а внутри функции есть свой параметр <code>y</code>.",
+    watch: "Наивная замена дала бы <code>λy. y</code> — свободный <code>y</code> стал бы связанным, смысл бы изменился. Поэтому внутренний параметр переименован в <code>y1</code>: ответ <code>λy1. y</code>.",
+    try: "Сравните с <code>(λx. λz. x) y</code> — здесь имена не конфликтуют, и переименование не нужно.",
+  },
+  {
+    chapter: "2. Логика",
+    title: "Булево — это выбор",
+    src: "TRUE a b",
+    idea: "В языке нет типа boolean. <code>TRUE = λt. λf. t</code> — функция, которая из двух вариантов выбирает первый. <code>FALSE</code> выбирает второй.",
+    watch: "Сначала раскрывается <code>TRUE</code>, потом два шага подстановки — как в уроке «Два аргумента». Ответ — <code>a</code>.",
+    try: "Замените <code>TRUE</code> на <code>FALSE</code>.",
+  },
+  {
+    chapter: "2. Логика",
+    title: "IF — просто вызов",
+    src: "IF FALSE yes no",
+    idea: "<code>IF = λc. λt. λf. c t f</code>: условие само выбирает ветку, а <code>IF</code> лишь передаёт ему обе.",
+    watch: "Ветвление не встроено в язык — оно получается из подстановки. Ответ — <code>no</code>.",
+    try: "Подставьте <code>TRUE</code>, а потом <code>(NOT FALSE)</code> вместо условия.",
+  },
+  {
+    chapter: "2. Логика",
+    title: "NOT и AND",
+    src: "AND TRUE (NOT FALSE)",
+    idea: "<code>NOT</code> меняет местами ветки, <code>AND a b = a b FALSE</code>: если <code>a</code> истинно — ответ <code>b</code>, иначе <code>FALSE</code>.",
+    watch: "Под термом появится подпись <span class=\"value\">TRUE</span> — песочница узнаёт известные значения в результате.",
+    try: "Попробуйте <code>OR FALSE FALSE</code> и <code>NOT (AND TRUE FALSE)</code>.",
+  },
+  {
+    chapter: "3. Числа",
+    title: "Число — это повторение",
+    src: "THREE g a",
+    idea: "Число Чёрча n — функция «применить f ровно n раз к x»: <code>THREE = λf. λx. f (f (f x))</code>. Ноль — не применять ни разу.",
+    watch: "Ответ — <code>g (g (g a))</code>: три вызова. Число не хранится, а делается.",
+    try: "Попробуйте <code>ZERO g a</code> и <code>TWO (λz. z z) a</code>.",
+  },
+  {
+    chapter: "3. Числа",
+    title: "Прибавить единицу",
+    src: "SUCC TWO",
+    idea: "<code>SUCC = λn. λf. λx. f (n f x)</code>: сделать то, что делает n, и ещё один вызов <code>f</code> сверху.",
+    watch: "Результат — <code>λf. λx. f (f (f x))</code>, а подпись скажет <span class=\"value\">число 3</span>.",
+    try: "Посчитайте <code>SUCC (SUCC ZERO)</code>.",
+  },
+  {
+    chapter: "3. Числа",
+    title: "Сложение и умножение",
+    src: "ADD TWO THREE",
+    idea: "<code>ADD m n = m SUCC n</code> — повторить «+1» m раз, начиная с n. <code>MUL m n = λf. m (n f)</code> — повторить повторение.",
+    watch: "Обратите внимание на число шагов в статусе: арифметика Чёрча медленная, зато построена из одной подстановки.",
+    try: "Посчитайте <code>MUL TWO THREE</code> и сравните число шагов.",
+  },
+  {
+    chapter: "3. Числа",
+    title: "Проверка на ноль и вычитание",
+    src: "ISZERO (PRED ONE)",
+    idea: "<code>ISZERO = λn. n (λx. FALSE) TRUE</code>: если f ни разу не вызвали — останется <code>TRUE</code>. <code>PRED</code> (минус один) — хитрый терм, который Клини нашёл в 1932 году.",
+    watch: "PRED ONE даёт ноль, поэтому ответ — <span class=\"value\">TRUE</span>.",
+    try: "Посчитайте <code>PRED THREE</code> по шагам — увидите, как PRED «отстаёт на один вызов».",
+  },
+  {
+    chapter: "4. Пары и списки",
+    title: "Пара отвечает на вопрос",
+    src: "SND (PAIR a b)",
+    idea: "<code>PAIR a b = λs. s a b</code> — пара ждёт селектор и отдаёт ему обе части. <code>FST</code> передаёт <code>TRUE</code>, <code>SND</code> — <code>FALSE</code>.",
+    watch: "Пара не хранит поля: выбор делает булево из урока про логику.",
+    try: "Попробуйте <code>FST (PAIR a b)</code>.",
+  },
+  {
+    chapter: "4. Пары и списки",
+    title: "Список — это свёртка",
+    src: "CONS a (CONS b NIL) f z",
+    idea: "Список Чёрча — функция «сверни меня»: <code>CONS h t = λc. λn. c h (t c n)</code>, <code>NIL = λc. λn. n</code>. Это <code>reduceRight</code> в JS.",
+    watch: "Ответ — <code>f a (f b z)</code>: каждый <code>CONS</code> стал вызовом <code>f</code>, а <code>NIL</code> — начальным значением <code>z</code>.",
+    try: "Сумма списка: <code>CONS ONE (CONS TWO NIL) ADD ZERO</code> — ответ будет <span class=\"value\">число 3</span>.",
+  },
+  {
+    chapter: "5. Бесконечность и порядок",
+    title: "Ω: вечный цикл",
+    src: "Ω",
+    idea: "<code>Ω = (λx. x x)(λx. x x)</code> подставляет себя в себя. У него нет нормальной формы — вычисление не заканчивается.",
+    watch: "После шага терм повторится, и песочница остановит вычисление. Это <code>while (true) {}</code> из одной подстановки.",
+    try: "Попробуйте <code>(λx. x x x)(λx. x x x)</code> — этот терм не повторяется, а растёт.",
+  },
+  {
+    chapter: "5. Бесконечность и порядок",
+    title: "Порядок решает, будет ли ответ",
+    src: "(λx. λy. y) Ω",
+    idea: "Функция выбрасывает свой аргумент, а аргумент — бесконечный <code>Ω</code>. Как поступит вычислитель, зависит от стратегии.",
+    watch: "<b>По имени</b> (как Haskell) аргумент не трогают, пока он не нужен: ответ <code>λy. y</code> за один шаг. <b>По значению</b> (как JS и Go) сначала считают аргумент — и застревают навсегда.",
+    try: "Переключите режим наверху и прогоните ещё раз.",
+  },
+  {
+    chapter: "5. Бесконечность и порядок",
+    title: "Чёрч–Россер: ответ один",
+    src: "(λx. g x x) ((λy. y) a)",
+    idea: "Если оба порядка заканчиваются, ответ у них один и тот же. Отличаться может только путь.",
+    watch: "По имени аргумент <code>(λy. y) a</code> копируется дважды и считается дважды. По значению — один раз, до вызова. Ответ в обоих случаях <code>g a a</code>.",
+    try: "Сравните число шагов в обоих режимах.",
+  },
+  {
+    chapter: "6. Рекурсия",
+    title: "Комбинаторы без переменных",
+    src: "S K K z",
+    idea: "<code>K x y = x</code>, <code>S x y z = x z (y z)</code>. Из одних S и K можно собрать любую функцию. Например, тождественная: <code>I = S K K</code>.",
+    watch: "Ответ — <code>z</code>: <code>S K K</code> ведёт себя как <code>λx. x</code>, хотя в его записи нет ни одной переменной.",
+    try: "Проверьте <code>S K S z</code> — тоже тождественная функция.",
+  },
+  {
+    chapter: "6. Рекурсия",
+    title: "Y: неподвижная точка",
+    src: "Y g",
+    idea: "<code>Y = λf. (λx. f (x x)) (λx. f (x x))</code> — это <code>Ω</code>, в который вставили <code>f</code>. Главное свойство: <code>Y g = g (Y g)</code>.",
+    watch: "Делайте шаги по одному: с каждым разом снаружи нарастает ещё один <code>g (…)</code>. Это и есть рекурсия без имён.",
+    try: "Нажмите «до конца» — песочница остановит рост: у <code>Y g</code> нет нормальной формы, если <code>g</code> не умеет остановиться.",
+  },
+  {
+    chapter: "6. Рекурсия",
+    title: "Факториал без имени",
+    src: "FACT TWO",
+    idea: "<code>FACT = Y (λself. λn. IF (ISZERO n) ONE (MUL n (self (PRED n))))</code>. Функция получает «себя» параметром <code>self</code>, а Y завязывает узел.",
+    watch: "Нажмите «до конца»: по имени получится <span class=\"value\">число 2</span> примерно за 140 шагов. Каждый вызов Y разворачивает ровно один слой рекурсии.",
+    try: "Переключите режим на «по значению»: строгий порядок вычисляет обе ветки IF и разворачивает Y бесконечно. Именно поэтому в JS нужен комбинатор <code>Z</code> и ленивый оператор <code>?:</code>.",
+  },
+  {
+    chapter: "7. Дальше сами",
+    title: "Свободное плавание",
+    src: "FACT THREE",
+    idea: "Последний урок тяжёлый: около 700 шагов по имени. Дальше — пишите свои термы в поле «Свой терм» ниже.",
+    watch: "Ответ — <span class=\"value\">число 6</span>. Заглядывайте в «Словарь определений», чтобы собирать свои выражения из готовых частей.",
+    try: "Определите возведение в степень: <code>(λm. λn. n m) TWO THREE</code> — это 2³ = 8.",
+  },
+];
+
+const MODE_HINT = {
+  name: "аргумент вычисляется, только когда понадобился — как в Haskell",
+  value: "сначала вычисляются аргументы, потом вызов — как в JS, Go, Python",
+};
+const RUN_LIMIT = 3000;
+const SIZE_LIMIT = 6000;
+const TRACE_LIMIT = 200;
+
+const $ = (id) => document.getElementById(id);
+const termEl = $("term");
+const statusEl = $("status");
+const sourceEl = $("source");
+const traceEl = $("trace");
+
+let mode = "name";
+let lesson = 0;
+let trail = [];
+let seen = new Set();
+let ended = false;
+const done = new Set();
+
+function show(html, kind) {
+  statusEl.innerHTML = html;
+  statusEl.className = "status" + (kind ? " " + kind : "");
+}
+
+function current() {
+  return trail[trail.length - 1];
+}
+
+function render() {
+  const term = current();
+  if (!term) return;
+  termEl.innerHTML = pretty(term, findRedex(term, mode));
+  $("back").disabled = trail.length < 2;
+  $("step").disabled = ended;
+  $("run").disabled = ended;
+}
+
+function renderTrace() {
+  const items = trail.map(plain);
+  const start = Math.max(0, items.length - TRACE_LIMIT);
+  traceEl.innerHTML = "";
+  if (start > 0) {
+    const li = document.createElement("li");
+    li.textContent = `… первые ${start} шагов скрыты`;
+    traceEl.append(li);
+  }
+  items.slice(start).forEach((text, i) => {
+    const li = document.createElement("li");
+    const n = start + i;
+    li.innerHTML = `<b>${n === 0 ? "старт" : n}</b>`;
+    li.append(text);
+    if (start + i === items.length - 1) li.className = "last";
+    traceEl.append(li);
+  });
+  traceEl.scrollTop = traceEl.scrollHeight;
+}
+
+function finish() {
+  const term = current();
+  const steps = trail.length - 1;
+  const value = decode(term);
+  const tail = value ? ` Это <span class="value">${value}</span>.` : "";
+  show(`Нормальная форма за ${steps} ${plural(steps)}: вызывать больше нечего.${tail}`, "good");
+  ended = true;
+  done.add(lesson);
+  markDone();
+}
+
+function plural(n) {
+  const a = n % 10;
+  const b = n % 100;
+  if (a === 1 && b !== 11) return "шаг";
+  if (a >= 2 && a <= 4 && (b < 12 || b > 14)) return "шага";
+  return "шагов";
+}
+
+function advance() {
+  if (ended) return false;
+  const next = step(current(), mode);
+  if (!next) {
+    finish();
+    return false;
+  }
+  trail.push(next);
+  const text = plain(next);
+  const steps = trail.length - 1;
+  if (seen.has(text)) {
+    show(`Шаг ${steps}: терм повторился. Вычисление никогда не закончится.`, "bad");
+    ended = true;
+    return false;
+  }
+  seen.add(text);
+  if (text.length > SIZE_LIMIT) {
+    show(`Шаг ${steps}: терм разросся до ${text.length} символов и продолжает расти. Похоже, нормальной формы нет.`, "bad");
+    ended = true;
+    return false;
+  }
+  if (!findRedex(next, mode)) {
+    finish();
+    return false;
+  }
+  show(`Шаг ${steps}. Подсвечен следующий вызов.`, "");
+  return true;
+}
+
+function doStep() {
+  advance();
+  render();
+  renderTrace();
+}
+
+function runAll() {
+  let i = 0;
+  while (i < RUN_LIMIT && advance()) i += 1;
+  if (i >= RUN_LIMIT) show(`Сделано ${trail.length - 1} шагов, конца не видно. Можно нажать ещё раз.`, "bad");
+  render();
+  renderTrace();
+}
+
+function back() {
+  if (trail.length < 2) return;
+  trail.pop();
+  seen = new Set(trail.map(plain));
+  ended = false;
+  show(`Шаг ${trail.length - 1}. Вернулись назад.`, "");
+  render();
+  renderTrace();
+}
+
+function load(source) {
+  try {
+    const term = parse(source, ENV);
+    trail = [term];
+    seen = new Set([plain(term)]);
+    ended = false;
+    if (!findRedex(term, mode)) finish();
+    else show("Подсвечен редекс — вызов, который выполнится следующим шагом.", "");
+    render();
+    renderTrace();
+  } catch (error) {
+    trail = [];
+    termEl.textContent = "терм не разобран";
+    show(`Ошибка разбора: ${error.message}`, "bad");
+    traceEl.innerHTML = "";
+  }
+}
+
+function openLesson(index) {
+  lesson = Math.max(0, Math.min(LESSONS.length - 1, index));
+  const item = LESSONS[lesson];
+  $("chapter").textContent = `${item.chapter} · урок ${lesson + 1} из ${LESSONS.length}`;
+  $("title").textContent = item.title;
+  $("idea").innerHTML = item.idea;
+  $("watch").innerHTML = item.watch;
+  $("try").innerHTML = item.try;
+  $("prev").disabled = lesson === 0;
+  $("next").disabled = lesson === LESSONS.length - 1;
+  document.querySelectorAll("button.ex").forEach((el, i) => el.classList.toggle("on", i === lesson));
+  sourceEl.value = item.src;
+  load(item.src);
+  window.history.replaceState(null, "", `#${lesson + 1}`);
+}
+
+function markDone() {
+  document.querySelectorAll("button.ex").forEach((el, i) => el.classList.toggle("done", done.has(i)));
+}
+
+function setMode(next) {
+  mode = next;
+  $("by-name").classList.toggle("on", mode === "name");
+  $("by-value").classList.toggle("on", mode === "value");
+  $("mode-hint").textContent = MODE_HINT[mode];
+  load(sourceEl.value);
+}
+
+let lastChapter = "";
+LESSONS.forEach((item, index) => {
+  if (item.chapter !== lastChapter) {
+    lastChapter = item.chapter;
+    const head = document.createElement("div");
+    head.className = "chapter";
+    head.textContent = item.chapter;
+    $("lessons").append(head);
+  }
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "ex";
+  button.innerHTML = `<span class="num">${index + 1}</span><span>${item.title}</span>`;
+  button.addEventListener("click", () => openLesson(index));
+  $("lessons").append(button);
+});
+
+const NOTES = {
+  TRUE: "выбирает первое", FALSE: "выбирает второе · это же ноль", IF: "условие само выбирает ветку",
+  NOT: "меняет ветки местами", AND: "оба истинны", OR: "хотя бы одно истинно",
+  ZERO: "f ни разу", ONE: "f один раз", TWO: "f дважды", THREE: "f трижды",
+  SUCC: "+1", ADD: "сложение", MUL: "умножение", ISZERO: "проверка на ноль", PRED: "−1 (Клини, 1932)",
+  PAIR: "пара", FST: "первый элемент", SND: "второй элемент", NIL: "пустой список", CONS: "добавить в начало списка",
+  I: "тождество", K: "константа", S: "распределитель",
+  Y: "неподвижная точка (по имени)", Z: "неподвижная точка для строгого порядка", Ω: "вечный цикл",
+  FACT: "факториал через Y",
+};
+for (const [name, source] of DEFINITIONS) {
+  const key = document.createElement("button");
+  key.type = "button";
+  key.textContent = name;
+  key.title = "вставить в терм";
+  key.addEventListener("click", () => {
+    sourceEl.value = `${sourceEl.value.trim()} ${name}`.trim();
+    load(sourceEl.value);
+  });
+  const body = document.createElement("span");
+  body.textContent = source;
+  const note = document.createElement("em");
+  note.textContent = NOTES[name] || "";
+  body.append(note);
+  $("dict").append(key, body);
+}
+
+$("by-name").addEventListener("click", () => setMode("name"));
+$("by-value").addEventListener("click", () => setMode("value"));
+$("step").addEventListener("click", doStep);
+$("back").addEventListener("click", back);
+$("run").addEventListener("click", runAll);
+$("reset").addEventListener("click", () => load(sourceEl.value));
+$("prev").addEventListener("click", () => openLesson(lesson - 1));
+$("next").addEventListener("click", () => openLesson(lesson + 1));
+sourceEl.addEventListener("change", () => load(sourceEl.value));
+window.addEventListener("keydown", (event) => {
+  if (event.target === sourceEl) return;
+  if (event.key === "ArrowRight" || event.key === " ") {
+    event.preventDefault();
+    doStep();
+  } else if (event.key === "ArrowLeft") {
+    event.preventDefault();
+    back();
+  }
+});
+
+$("mode-hint").textContent = MODE_HINT[mode];
+const start = parseInt(location.hash.slice(1), 10);
+openLesson(Number.isFinite(start) ? start - 1 : 0);
+</script>
+</body>
+</html>
